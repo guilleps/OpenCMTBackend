@@ -1,6 +1,5 @@
 package com.open.cmt.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +20,7 @@ public class Incidente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     private LocalDate fecha;
 
@@ -46,7 +45,7 @@ public class Incidente {
     @JoinColumn(name = "idsector", referencedColumnName = "id")
     private Sector sector;
 
-    private String idoperador;
+    private Integer idoperador;
 
     // Relación muchos a muchos con personal a través de la tabla incidente_personal
     @ManyToMany(fetch = FetchType.LAZY)
@@ -66,7 +65,10 @@ public class Incidente {
     )
     private List<Vehiculo> vehiculos;
 
-    private String horallegada;
+    private LocalTime horallegada;
     private String direccion;
+
+    @OneToMany(mappedBy = "incidente", fetch = FetchType.LAZY)
+    private List<Solicitud> solicitudes;
 
 }

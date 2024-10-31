@@ -16,8 +16,8 @@ public class Sector {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    private String idzona;
+    private Integer idzona;
     private String titulo;
 }
