@@ -1,2 +1,14 @@
-package com.open.cmt.controller.response;public class SolicitudResponse {
+package com.open.cmt.controller.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class SolicitudResponse {
+    String mensaje;
 }

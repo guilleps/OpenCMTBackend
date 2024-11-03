@@ -3,12 +3,14 @@ package com.open.cmt.entity;
 import com.open.cmt.enumeration.EstadoEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -19,7 +21,7 @@ public class Solicitud {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "nro_solicitud")
+    @Column(name = "nro_solicitud", unique = true)
     private String nroSolicitud;
 
     @Enumerated(EnumType.STRING)
@@ -30,8 +32,8 @@ public class Solicitud {
 
     private String motivo;
 
-    @ManyToOne
-    @JoinColumn(name = "idsolicitante", nullable = false)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "solicitante_id", referencedColumnName = "id", nullable = false, unique = true)
     private Solicitante solicitante;
 
     @ManyToOne

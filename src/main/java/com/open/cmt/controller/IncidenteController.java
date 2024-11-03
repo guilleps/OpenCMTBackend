@@ -2,7 +2,10 @@ package com.open.cmt.controller;
 
 import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.IncidenteDTOPreview;
+import com.open.cmt.controller.request.SolicitudRequest;
+import com.open.cmt.controller.response.SolicitudResponse;
 import com.open.cmt.service.IncidenteService;
+import com.open.cmt.service.SolicitudService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +25,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class IncidenteController {
     private final IncidenteService incidenteService;
+    private final SolicitudService solicitudService;
 
     @GetMapping("/buscar")
     public ResponseEntity<PagedModel<EntityModel<IncidenteDTOPreview>>> obtenerIncidentesConFiltros(
@@ -58,5 +63,9 @@ public class IncidenteController {
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(IncidenteController.class).obtenerTodosLosIncidentes(0, 30, null)).withRel("todos")));
     }
 
-
+    @PostMapping("/{id}/solicitar")
+    public ResponseEntity<SolicitudResponse> solicitarAccesoIncidente(@PathVariable Long id, @RequestBody SolicitudRequest solicitudRequest) {
+        SolicitudResponse solicitudResponse = solicitudService.crearSolicitud(solicitudRequest, id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(solicitudResponse);
+    }
 }

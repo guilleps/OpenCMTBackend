@@ -47,7 +47,8 @@ public class SecurityConfig {
         return new OrRequestMatcher(
                 new AntPathRequestMatcher("/api/auth/login"),
                 new AntPathRequestMatcher("/api/incidente/**"),
-                new AntPathRequestMatcher("/api/auth/create-user")
+                new AntPathRequestMatcher("/api/auth/create-user"),
+                new AntPathRequestMatcher("/api/solicitudes/**")
         );
     }
 
