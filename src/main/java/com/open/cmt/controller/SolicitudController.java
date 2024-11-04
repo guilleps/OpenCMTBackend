@@ -3,6 +3,7 @@ package com.open.cmt.controller;
 import com.open.cmt.controller.dto.IncidenteDetalleDTO;
 import com.open.cmt.controller.dto.SolicitudDTO;
 import com.open.cmt.controller.dto.SolicitudDTOPreview;
+import com.open.cmt.controller.response.SolicitudResponse;
 import com.open.cmt.enumeration.EstadoEnum;
 import com.open.cmt.enumeration.TimePeriod;
 import com.open.cmt.service.SolicitudService;
@@ -59,6 +60,14 @@ public class SolicitudController {
 
         Page<SolicitudDTOPreview> solicitudes = solicitudService.obtenerTodasLasSolicitudesPrevias(page, size);
         return ResponseEntity.ok(assembler.toModel(solicitudes));
+    }
+
+    @PatchMapping("/{id}/atender")
+    public ResponseEntity<SolicitudResponse> atenderSolicitud(@PathVariable Long id,
+                                                              @RequestParam String nuevoEstado) {
+        EstadoEnum estadoEnum = nuevoEstado != null ? EstadoEnum.fromString(nuevoEstado) : null;
+        SolicitudResponse response = solicitudService.actualizarSolicitud(id, estadoEnum);
+        return ResponseEntity.ok(response);
     }
 
 }

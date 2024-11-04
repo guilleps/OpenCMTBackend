@@ -135,6 +135,16 @@ public class SolicitudService {
                 .map(SolicitudPreviewMapper::toSolicitudDTOPreview);
     }
 
+    public SolicitudResponse actualizarSolicitud(Long id, EstadoEnum nuevoEstado) {
+        Solicitud solicitud = solicitudRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con ID: " + id));
+
+        solicitud.setEstado(nuevoEstado);
+        solicitudRepository.save(solicitud);
+
+        return new SolicitudResponse("Solicitud " + solicitud.getNroSolicitud() + " actualizada a estado: " + nuevoEstado);
+    }
+
     private PageRequest createPageRequest(int page, int size) {
         return PageRequest.of(page, size, Sort.Direction.DESC, "fechaHora");
     }
