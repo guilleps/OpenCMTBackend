@@ -2,10 +2,12 @@ package com.open.cmt.service;
 
 import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.IncidenteDTOPreview;
+import com.open.cmt.entity.Incidente;
 import com.open.cmt.exception.ResourceNotFoundException;
 import com.open.cmt.repository.IncidenteRepository;
 import com.open.cmt.service.mapper.IncidentMapper;
 import com.open.cmt.service.mapper.IncidentePreviewMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,5 +48,10 @@ public class IncidenteService {
         return incidenteRepository.findById(id)
                 .map(IncidentMapper::toIncidenteDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Incidente con id: " + id + " no encontrado"));
+    }
+
+    public Incidente buscarIncidentePorId(Long id) {
+        return incidenteRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Incidente no encontrado con ID: " + id));
     }
 }

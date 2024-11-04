@@ -7,6 +7,7 @@ import com.open.cmt.controller.response.SolicitudResponse;
 import com.open.cmt.enumeration.EstadoEnum;
 import com.open.cmt.enumeration.TimePeriod;
 import com.open.cmt.service.SolicitudService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,8 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/solicitudes")
@@ -28,6 +31,31 @@ public class SolicitudController {
     public ResponseEntity<SolicitudDTO> obtenerSolicitud(@PathVariable Long id) {
         SolicitudDTO solicitudDTO = solicitudService.obtenerSolicitud(id);
         return ResponseEntity.ok(solicitudDTO);
+    }
+    /**
+     * Endpoint para atender una solicitud especificada por su ID.
+     * La solicitud puede aprobarse o rechazarse en función del parámetro "accion".
+     *
+     * @param id el ID de la solicitud a atender
+     * @param accion la acción a realizar, "approve" o "reject"
+     * @return una respuesta con el estado actualizado de la solicitud
+     * @throws MessagingException si ocurre un error en el envío de correo electrónico
+     * @throws IOException si ocurre un error en la generación del documento PDF
+     */
+    @PatchMapping("/{id}/atender")
+    public ResponseEntity<SolicitudResponse> atenderSolicitud(@PathVariable Long id,
+                                                              @RequestParam String accion) throws MessagingException, IOException {
+        return switch (accion.toLowerCase()) {
+            case "approve" -> {
+                SolicitudResponse approvalResponse = solicitudService.aprobarSolicitud(id);
+                yield ResponseEntity.ok(approvalResponse);
+            }
+            case "reject" -> {
+                SolicitudResponse rejectionResponse = solicitudService.rechazarSolicitud(id);
+                yield ResponseEntity.ok(rejectionResponse);
+            }
+            default -> ResponseEntity.badRequest().body(new SolicitudResponse("Acción no válida."));
+        };
     }
 
     @GetMapping("/{id}/incidente")
@@ -60,14 +88,6 @@ public class SolicitudController {
 
         Page<SolicitudDTOPreview> solicitudes = solicitudService.obtenerTodasLasSolicitudesPrevias(page, size);
         return ResponseEntity.ok(assembler.toModel(solicitudes));
-    }
-
-    @PatchMapping("/{id}/atender")
-    public ResponseEntity<SolicitudResponse> atenderSolicitud(@PathVariable Long id,
-                                                              @RequestParam String nuevoEstado) {
-        EstadoEnum estadoEnum = nuevoEstado != null ? EstadoEnum.fromString(nuevoEstado) : null;
-        SolicitudResponse response = solicitudService.actualizarSolicitud(id, estadoEnum);
-        return ResponseEntity.ok(response);
     }
 
 }

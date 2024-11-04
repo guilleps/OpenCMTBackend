@@ -9,17 +9,24 @@ import com.open.cmt.entity.Solicitante;
 import com.open.cmt.entity.Solicitud;
 import com.open.cmt.enumeration.EstadoEnum;
 import com.open.cmt.enumeration.TimePeriod;
-import com.open.cmt.repository.IncidenteRepository;
 import com.open.cmt.repository.SolicitudRepository;
 import com.open.cmt.service.mapper.SolicitudPreviewMapper;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,8 +36,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SolicitudService {
     private final SolicitudRepository solicitudRepository;
-    private final IncidenteRepository incidenteRepository;
+    private final IncidenteService incidenteService;
     private final EmailService emailService;
+    private final GeneratedPDFService pdfService;
 
     public SolicitudResponse crearSolicitud(SolicitudRequest solicitudRequest, Long id) {
 
@@ -43,8 +51,7 @@ public class SolicitudService {
                 .telefono(solicitudRequest.getTelefono())
                 .build();
 
-        Incidente incidente = incidenteRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Incidente no encontrado con ID: " + id));
+        Incidente incidente = incidenteService.buscarIncidentePorId(id);
 
         Solicitud solicitud = Solicitud.builder()
                 .nroSolicitud(generarNroSolicitud())
@@ -66,13 +73,15 @@ public class SolicitudService {
 
     private void enviarCorreoConfirmacion(String correoElectronico, String nroSolicitud) {
         String subject = "Confirmación de Solicitud N°" + nroSolicitud;
-        String body = "Su solicitud ha sido enviada con éxito. Tiene un plazo de 7 días a partir de hoy para recibir una respuesta.";
+        String body = "Su solicitud ha sido enviada con éxito.\n\n" +
+                "De acuerdo con el Artículo 7 de la Ley N° 27806, a partir de hoy se inicia el plazo de siete (7) días hábiles para recibir una respuesta formal a su solicitud.\n\n" +
+                "Atentamente,\n\n" +
+                "OpenCMT";
         emailService.sendEmail(correoElectronico, subject, body);
     }
 
     public SolicitudDTO obtenerSolicitud(Long id) {
-        Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con ID: " + id));
+        Solicitud solicitud = buscarSoliciturPorId(id);
 
         return SolicitudDTO.builder()
                 .nroSolicitud(solicitud.getNroSolicitud())
@@ -89,12 +98,10 @@ public class SolicitudService {
 
     @Transactional(readOnly = true)
     public IncidenteDetalleDTO obtenerIncidenteDetalle(Long id) {
-        Solicitud solicitud = solicitudRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada con ID: " + id));
+        Solicitud solicitud = buscarSoliciturPorId(id);
         Long idIncidente = solicitud.getIncidente().getId().longValue();
 
-        Incidente incidente = incidenteRepository.findById(idIncidente)
-                .orElseThrow(() -> new EntityNotFoundException("Incidente no encontrado con ID: " + idIncidente));
+        Incidente incidente = incidenteService.buscarIncidentePorId(idIncidente);
 
         return IncidenteDetalleDTO.builder()
                 .nroIncidente(incidente.getId().toString())
@@ -135,14 +142,50 @@ public class SolicitudService {
                 .map(SolicitudPreviewMapper::toSolicitudDTOPreview);
     }
 
-    public SolicitudResponse actualizarSolicitud(Long id, EstadoEnum nuevoEstado) {
-        Solicitud solicitud = solicitudRepository.findById(id)
+    public Solicitud buscarSoliciturPorId(Long id) {
+        return solicitudRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con ID: " + id));
+    }
 
-        solicitud.setEstado(nuevoEstado);
+    @Transactional
+    public SolicitudResponse aprobarSolicitud(Long id) throws MessagingException, IOException {
+        Solicitud solicitud = buscarSoliciturPorId(id);
+
+        solicitud.setEstado(EstadoEnum.ACEPTADO);
         solicitudRepository.save(solicitud);
 
-        return new SolicitudResponse("Solicitud " + solicitud.getNroSolicitud() + " actualizada a estado: " + nuevoEstado);
+        Incidente incidente = solicitud.getIncidente();
+        incidente.getPersonalList().size();
+
+        enviarDatosDeSolicitudAprobada(solicitud.getSolicitante().getCorreoElectronico(), solicitud.getNroSolicitud(), solicitud, incidente);
+
+        return new SolicitudResponse("Solicitud " + solicitud.getNroSolicitud() + " actualizada a estado: " + solicitud.getEstado().toString());
+    }
+
+    private void enviarDatosDeSolicitudAprobada(String correoElectronico, String nroSolicitud, Solicitud solicitud, Incidente incidente) throws MessagingException, IOException {
+        String subject = "Solicitud N°" + nroSolicitud + " APROBADA";
+        String body = "Su solicitud ha sido aprobada.";
+
+        byte[] pdfBytes = pdfService.generarPDFSolicitud(solicitud, incidente);
+
+        emailService.sendEmailWithAttachment(correoElectronico, subject, body, pdfBytes, "Solicitud_" + nroSolicitud + ".pdf");
+    }
+
+    public SolicitudResponse rechazarSolicitud(Long id) {
+        Solicitud solicitud = buscarSoliciturPorId(id);
+
+        solicitud.setEstado(EstadoEnum.RECHAZADO);
+        solicitudRepository.save(solicitud);
+
+        enviarDatosDeSolicitudRechazada(solicitud.getSolicitante().getCorreoElectronico(), solicitud.getNroSolicitud());
+
+        return new SolicitudResponse("Solicitud " + solicitud.getNroSolicitud() + " actualizada a estado: " + solicitud.getEstado().toString());
+    }
+
+    private void enviarDatosDeSolicitudRechazada(String correoElectronico, String nroSolicitud) {
+        String subject = "Solicitud N°" + nroSolicitud + " RECHAZADA";
+        String body = "Lamentamos informarle que su solicitud ha sido rechazada, ya que ha solicitado material videográfico, fotográfico u otro relacionado con el incidente, el cual no puede ser entregado a una persona natural.\n\nAtentamente,\nOpenCMT";
+        emailService.sendEmail(correoElectronico, subject, body);
     }
 
     private PageRequest createPageRequest(int page, int size) {
@@ -166,12 +209,24 @@ public class SolicitudService {
     private LocalDateTime calcularFechaInicio(TimePeriod periodo) {
         LocalDateTime now = LocalDateTime.now();
         switch (periodo) {
-            case LAST_HOUR -> { return now.minusHours(1); }
-            case LAST_24_HOURS -> { return now.minusDays(1); }
-            case LAST_WEEK -> { return now.minusWeeks(1); }
-            case LAST_MONTH -> { return now.minusMonths(1); }
-            case LAST_YEAR -> { return now.minusYears(1); }
-            default -> { return null; }
+            case LAST_HOUR -> {
+                return now.minusHours(1);
+            }
+            case LAST_24_HOURS -> {
+                return now.minusDays(1);
+            }
+            case LAST_WEEK -> {
+                return now.minusWeeks(1);
+            }
+            case LAST_MONTH -> {
+                return now.minusMonths(1);
+            }
+            case LAST_YEAR -> {
+                return now.minusYears(1);
+            }
+            default -> {
+                return null;
+            }
         }
     }
 
