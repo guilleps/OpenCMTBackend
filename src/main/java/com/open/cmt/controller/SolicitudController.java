@@ -2,16 +2,22 @@ package com.open.cmt.controller;
 
 import com.open.cmt.controller.dto.IncidenteDetalleDTO;
 import com.open.cmt.controller.dto.SolicitudDTO;
+import com.open.cmt.controller.dto.SolicitudDTOPreview;
+import com.open.cmt.enumeration.EstadoEnum;
+import com.open.cmt.enumeration.TimePeriod;
 import com.open.cmt.service.SolicitudService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/solicitudes")
+@RequestMapping("/api/solicitudes")
 @RequiredArgsConstructor
 public class SolicitudController {
 
@@ -28,4 +34,31 @@ public class SolicitudController {
         IncidenteDetalleDTO incidenteDetalleDTO = solicitudService.obtenerIncidenteDetalle(id);
         return ResponseEntity.ok(incidenteDetalleDTO);
     }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<PagedModel<EntityModel<SolicitudDTOPreview>>> obtenerSolicitudesPorFiltros (
+            @RequestParam(required = false) String estadoStr,
+            @RequestParam(required = false) String periodoStr,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Max(100) int size,
+            PagedResourcesAssembler<SolicitudDTOPreview> assembler) {
+
+        EstadoEnum estadoEnum = estadoStr != null ? EstadoEnum.fromString(estadoStr) : null;
+        TimePeriod periodoEnum = periodoStr != null ? TimePeriod.fromString(periodoStr) : TimePeriod.ALL_TIME;
+
+        Page<SolicitudDTOPreview> solicitudes = solicitudService.obtenerSolicitudesPorFiltros(
+                estadoEnum, periodoEnum, page, size);
+        return ResponseEntity.ok(assembler.toModel(solicitudes));
+    }
+
+    @GetMapping("/todos")
+    public ResponseEntity<PagedModel<EntityModel<SolicitudDTOPreview>>> obtenerTodasLasSolicitudesPrevias(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Max(100) int size,
+            PagedResourcesAssembler<SolicitudDTOPreview> assembler) {
+
+        Page<SolicitudDTOPreview> solicitudes = solicitudService.obtenerTodasLasSolicitudesPrevias(page, size);
+        return ResponseEntity.ok(assembler.toModel(solicitudes));
+    }
+
 }

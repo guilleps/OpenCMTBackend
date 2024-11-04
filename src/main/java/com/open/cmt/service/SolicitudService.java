@@ -1,21 +1,23 @@
 package com.open.cmt.service;
 
-import com.open.cmt.controller.dto.IncidenteDetalleDTO;
-import com.open.cmt.controller.dto.PersonalDTO;
-import com.open.cmt.controller.dto.SolicitudDTO;
-import com.open.cmt.controller.dto.VehiculoDTO;
+import com.open.cmt.controller.dto.*;
 import com.open.cmt.controller.request.SolicitudRequest;
 import com.open.cmt.controller.response.SolicitudResponse;
 import com.open.cmt.entity.Incidente;
 import com.open.cmt.entity.Solicitante;
 import com.open.cmt.entity.Solicitud;
 import com.open.cmt.enumeration.EstadoEnum;
+import com.open.cmt.enumeration.TimePeriod;
 import com.open.cmt.repository.IncidenteRepository;
 import com.open.cmt.repository.SolicitudRepository;
+import com.open.cmt.service.mapper.SolicitudPreviewMapper;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -75,7 +77,7 @@ public class SolicitudService {
                 .build();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public IncidenteDetalleDTO obtenerIncidenteDetalle(Long id) {
         Solicitud solicitud = solicitudRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrada con ID: " + id));
@@ -108,6 +110,25 @@ public class SolicitudService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public Page<SolicitudDTOPreview> obtenerSolicitudesPorFiltros(EstadoEnum estado, TimePeriod periodo, int page, int size) {
+        PageRequest pageRequest = createPageRequest(page, size);
+        LocalDateTime fechaInicio = calcularFechaInicio(periodo);
+        return solicitudRepository.findByFilters(estado, fechaInicio, pageRequest)
+                .map(SolicitudPreviewMapper::toSolicitudDTOPreview);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SolicitudDTOPreview> obtenerTodasLasSolicitudesPrevias(int page, int size) {
+        PageRequest pageRequest = createPageRequest(page, size);
+        return solicitudRepository.findAll(pageRequest)
+                .map(SolicitudPreviewMapper::toSolicitudDTOPreview);
+    }
+
+    private PageRequest createPageRequest(int page, int size) {
+        return PageRequest.of(page, size, Sort.Direction.DESC, "fechaHora");
+    }
+
     private String generarNroSolicitud() {
         String fechaActual = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
@@ -120,6 +141,18 @@ public class SolicitudService {
         }
 
         return fechaActual + "-" + String.format("%03d", nextNumber);
+    }
+
+    private LocalDateTime calcularFechaInicio(TimePeriod periodo) {
+        LocalDateTime now = LocalDateTime.now();
+        switch (periodo) {
+            case LAST_HOUR -> { return now.minusHours(1); }
+            case LAST_24_HOURS -> { return now.minusDays(1); }
+            case LAST_WEEK -> { return now.minusWeeks(1); }
+            case LAST_MONTH -> { return now.minusMonths(1); }
+            case LAST_YEAR -> { return now.minusYears(1); }
+            default -> { return null; }
+        }
     }
 
 }
