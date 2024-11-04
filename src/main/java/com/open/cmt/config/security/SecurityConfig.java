@@ -46,15 +46,14 @@ public class SecurityConfig {
     private RequestMatcher publicEndpoints() {
         return new OrRequestMatcher(
                 new AntPathRequestMatcher("/api/auth/login"),
-                new AntPathRequestMatcher("/api/incidente/**"),
                 new AntPathRequestMatcher("/api/auth/create-user"),
-                new AntPathRequestMatcher("/api/solicitudes/**")
+                new AntPathRequestMatcher("/api/incidente/**")
         );
     }
 
     private RequestMatcher privateEndpoints() {
         return new OrRequestMatcher(
-                new AntPathRequestMatcher("/api/auth/cdvd")
+                new AntPathRequestMatcher("/api/solicitudes/**")
         );
     }
 

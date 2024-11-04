@@ -164,10 +164,14 @@ public class SolicitudService {
 
     private void enviarDatosDeSolicitudAprobada(String correoElectronico, String nroSolicitud, Solicitud solicitud, Incidente incidente) throws MessagingException, IOException {
         String subject = "Solicitud N°" + nroSolicitud + " APROBADA";
-        String body = "Su solicitud ha sido aprobada.";
+        String body = "Estimado(a) " + solicitud.getSolicitante().getNombreCompleto() + ",\n\n" +
+                "Nos complace informarle que su solicitud N°" + nroSolicitud + " ha sido aprobada exitosamente.\n\n" +
+                "Adjunto a este correo encontrará un documento PDF con la información completa de su solicitud y los detalles del incidente asociado.\n\n" +
+                "Agradecemos su paciencia durante el proceso de revisión.\n\n" +
+                "Atentamente,\n" +
+                "OpenCMT";
 
         byte[] pdfBytes = pdfService.generarPDFSolicitud(solicitud, incidente);
-
         emailService.sendEmailWithAttachment(correoElectronico, subject, body, pdfBytes, "Solicitud_" + nroSolicitud + ".pdf");
     }
 

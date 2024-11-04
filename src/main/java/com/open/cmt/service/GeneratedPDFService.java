@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class GeneratedPDFService {
@@ -40,7 +42,7 @@ public class GeneratedPDFService {
                 contentStream.beginText();
                 contentStream.newLineAtOffset(marginLeft, marginTop - lineHeight);
                 contentStream.showText("Solicitud N°: " + solicitud.getNroSolicitud());
-                contentStream.newLineAtOffset(marginRight - 175, 0);
+                contentStream.newLineAtOffset(marginRight - 170, 0);
                 contentStream.showText(solicitud.getFechaHora().toString());
                 contentStream.endText();
 
@@ -101,7 +103,7 @@ public class GeneratedPDFService {
                 contentStream.showText(incidente.getTipoIntervencion());
                 contentStream.endText();
 
-                yPosition -= 3 * lineHeight;
+                yPosition -= 2 * lineHeight;
                 contentStream.beginText();
                 contentStream.newLineAtOffset(marginLeft, yPosition);
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
@@ -112,10 +114,24 @@ public class GeneratedPDFService {
                 contentStream.beginText();
                 contentStream.newLineAtOffset(marginLeft, yPosition);
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
-                contentStream.showText(incidente.getResultado());
+                contentStream.showText(incidente.getTipoIntervencion());
                 contentStream.endText();
 
-                yPosition -= 3 * lineHeight;
+                yPosition -= 2 * lineHeight;
+                contentStream.beginText();
+                contentStream.newLineAtOffset(marginLeft, yPosition);
+                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
+                contentStream.showText("Dirección:");
+                contentStream.endText();
+
+                yPosition -= lineHeight;
+                contentStream.beginText();
+                contentStream.newLineAtOffset(marginLeft, yPosition);
+                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                contentStream.showText(incidente.getDireccion());
+                contentStream.endText();
+
+                yPosition -= 2 * lineHeight;
                 contentStream.beginText();
                 contentStream.newLineAtOffset(marginLeft, yPosition);
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
@@ -123,10 +139,10 @@ public class GeneratedPDFService {
                 contentStream.endText();
 
                 yPosition -= lineHeight;
-                addWrappedText(contentStream, incidente.getDetalle(), new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12, marginLeft, marginRight, yPosition, lineHeight);
+                yPosition = addWrappedText(contentStream, incidente.getDetalle(), new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12, marginLeft, marginRight, yPosition, lineHeight);
 
                 /// Listado de Personal y Cargos
-                yPosition -= 3 * lineHeight;
+                yPosition -= 2 * lineHeight;
                 contentStream.beginText();
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
                 contentStream.newLineAtOffset(marginLeft, yPosition);
@@ -162,7 +178,7 @@ public class GeneratedPDFService {
                     contentStream.beginText();
                     contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
                     contentStream.newLineAtOffset(marginLeft, yPosition);
-                    contentStream.showText("Movil" + vehiculo.getNumero());
+                    contentStream.showText("Movil " + vehiculo.getNumero());
                     contentStream.newLineAtOffset(marginRight - 150, 0);
                     contentStream.showText(vehiculo.getPlaca());
                     contentStream.endText();
@@ -177,40 +193,72 @@ public class GeneratedPDFService {
         }
     }
 
-    public void addWrappedText(PDPageContentStream contentStream, String text, PDFont font, float fontSize, float marginLeft, float marginRight, float yPosition, float lineHeight) throws IOException {
+    public float addWrappedText(PDPageContentStream contentStream, String text, PDFont font, float fontSize, float marginLeft, float marginRight, float yPosition, float lineHeight) throws IOException {
         float maxWidth = marginRight - marginLeft; // Ancho disponible entre los márgenes
-        float startX = marginLeft;
 
         // Divide el texto en líneas ajustadas al ancho máximo
         String[] words = text.split(" ");
         StringBuilder line = new StringBuilder();
+        List<String> lineWords = new ArrayList<>();
 
         for (String word : words) {
             String testLine = line + word + " ";
             float textWidth = font.getStringWidth(testLine) / 1000 * fontSize;
 
             if (textWidth > maxWidth) {
-                // Dibuja la línea actual y salta a la siguiente
-                contentStream.beginText();
-                contentStream.newLineAtOffset(startX, yPosition);
-                contentStream.showText(line.toString().trim());
-                contentStream.endText();
+                // Justifica la línea actual
+                if (lineWords.size() > 1) {
+                    float lineWidth = font.getStringWidth(line.toString().trim()) / 1000 * fontSize;
+                    float extraSpace = (maxWidth - lineWidth) / (lineWords.size() - 1);
+
+                    float currentX = marginLeft;
+                    contentStream.beginText();
+                    contentStream.setFont(font, fontSize);
+                    contentStream.newLineAtOffset(currentX, yPosition);
+
+                    for (int i = 0; i < lineWords.size(); i++) {
+                        String wordInLine = lineWords.get(i);
+                        contentStream.showText(wordInLine);
+
+                        // Añade el espacio extra entre palabras (excepto después de la última palabra)
+                        if (i < lineWords.size() - 1) {
+                            currentX += font.getStringWidth(wordInLine + " ") / 1000 * fontSize + extraSpace;
+                            contentStream.newLineAtOffset(extraSpace + font.getStringWidth(wordInLine + " ") / 1000 * fontSize, 0);
+                        }
+                    }
+                    contentStream.endText();
+                } else {
+                    // Si solo hay una palabra en la línea, simplemente alinéala a la izquierda
+                    contentStream.beginText();
+                    contentStream.setFont(font, fontSize);
+                    contentStream.newLineAtOffset(marginLeft, yPosition);
+                    contentStream.showText(line.toString().trim());
+                    contentStream.endText();
+                }
 
                 // Actualiza la posición vertical
                 yPosition -= lineHeight;
                 line = new StringBuilder();
+                lineWords.clear();
             }
+
             line.append(word).append(" ");
+            lineWords.add(word);
         }
 
-        // Dibuja cualquier texto restante en el buffer
-        if (line.length() > 0) {
+        // Dibuja cualquier texto restante en el buffer sin justificar (última línea)
+        if (!line.isEmpty()) {
             contentStream.beginText();
             contentStream.setFont(font, fontSize);
-            contentStream.newLineAtOffset(startX, yPosition);
+            contentStream.newLineAtOffset(marginLeft, yPosition);
             contentStream.showText(line.toString().trim());
             contentStream.endText();
-        }
-    }
 
+            yPosition -= lineHeight;
+        }
+
+        yPosition -= lineHeight;
+
+        return yPosition;
+    }
 }
