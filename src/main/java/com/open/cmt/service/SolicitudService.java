@@ -1,5 +1,6 @@
 package com.open.cmt.service;
 
+import com.open.cmt.config.email.EmailService;
 import com.open.cmt.controller.dto.*;
 import com.open.cmt.controller.request.SolicitudRequest;
 import com.open.cmt.controller.response.SolicitudResponse;
@@ -29,6 +30,7 @@ import java.util.Optional;
 public class SolicitudService {
     private final SolicitudRepository solicitudRepository;
     private final IncidenteRepository incidenteRepository;
+    private final EmailService emailService;
 
     public SolicitudResponse crearSolicitud(SolicitudRequest solicitudRequest, Long id) {
 
@@ -57,7 +59,15 @@ public class SolicitudService {
 
         solicitudRepository.save(solicitud);
 
+        enviarCorreoConfirmacion(solicitante.getCorreoElectronico(), solicitud.getNroSolicitud());
+
         return new SolicitudResponse("Solicitud " + solicitud.getNroSolicitud() + " enviada con éxito");
+    }
+
+    private void enviarCorreoConfirmacion(String correoElectronico, String nroSolicitud) {
+        String subject = "Confirmación de Solicitud N°" + nroSolicitud;
+        String body = "Su solicitud ha sido enviada con éxito. Tiene un plazo de 7 días a partir de hoy para recibir una respuesta.";
+        emailService.sendEmail(correoElectronico, subject, body);
     }
 
     public SolicitudDTO obtenerSolicitud(Long id) {
