@@ -14,18 +14,12 @@ import com.open.cmt.service.mapper.SolicitudPreviewMapper;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -80,8 +74,9 @@ public class SolicitudService {
         emailService.sendEmail(correoElectronico, subject, body);
     }
 
-    public SolicitudDTO obtenerSolicitud(Long id) {
-        Solicitud solicitud = buscarSoliciturPorId(id);
+    public SolicitudDTO obtenerSolicitud(String nroSolicitud) {
+        Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
 
         return SolicitudDTO.builder()
                 .nroSolicitud(solicitud.getNroSolicitud())
@@ -97,8 +92,9 @@ public class SolicitudService {
     }
 
     @Transactional(readOnly = true)
-    public IncidenteDetalleDTO obtenerIncidenteDetalle(Long id) {
-        Solicitud solicitud = buscarSoliciturPorId(id);
+    public IncidenteDetalleDTO obtenerIncidenteDetalle(String nroSolicitud) {
+        Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
         Long idIncidente = solicitud.getIncidente().getId().longValue();
 
         Incidente incidente = incidenteService.buscarIncidentePorId(idIncidente);

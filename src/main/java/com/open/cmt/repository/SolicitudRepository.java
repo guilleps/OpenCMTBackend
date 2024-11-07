@@ -26,5 +26,7 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
                                   @Param("fechaInicio") LocalDateTime fechaInicio,
                                   Pageable pageable);
 
+    Optional<Solicitud> findSolicitudByNroSolicitud(String nroSolicitud);
+
 }
 

@@ -27,9 +27,9 @@ public class SolicitudController {
 
     private final SolicitudService solicitudService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<SolicitudDTO> obtenerSolicitud(@PathVariable Long id) {
-        SolicitudDTO solicitudDTO = solicitudService.obtenerSolicitud(id);
+    @GetMapping("/{nroSolicitud}")
+    public ResponseEntity<SolicitudDTO> obtenerSolicitud(@PathVariable String nroSolicitud) {
+        SolicitudDTO solicitudDTO = solicitudService.obtenerSolicitud(nroSolicitud);
         return ResponseEntity.ok(solicitudDTO);
     }
     /**
@@ -58,9 +58,9 @@ public class SolicitudController {
         };
     }
 
-    @GetMapping("/{id}/incidente")
-    public ResponseEntity<IncidenteDetalleDTO> obtenerIncidenteSolicitud(@PathVariable Long id) {
-        IncidenteDetalleDTO incidenteDetalleDTO = solicitudService.obtenerIncidenteDetalle(id);
+    @GetMapping("/{nroSolicitud}/incidente")
+    public ResponseEntity<IncidenteDetalleDTO> obtenerIncidenteSolicitud(@PathVariable String nroSolicitud) {
+        IncidenteDetalleDTO incidenteDetalleDTO = solicitudService.obtenerIncidenteDetalle(nroSolicitud);
         return ResponseEntity.ok(incidenteDetalleDTO);
     }
 

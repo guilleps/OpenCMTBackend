@@ -22,14 +22,16 @@ import java.time.LocalDate;
 public class IncidenteService {
     private final IncidenteRepository incidenteRepository;
 
-    private PageRequest createPageRequest(int page, int size) {
+    private PageRequest createPageRequest(int page, int size, Sort and) {
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "fecha")
                 .and(Sort.by(Sort.Direction.DESC, "horallamada")));
     }
 
     @Transactional(readOnly = true)
     public Page<IncidenteDTOPreview> obtenerIncidentesPorFiltros(LocalDate fecha, String zona, String sector, String tipoIncidente, int page, int size) {
-        PageRequest pageRequest = createPageRequest(page, size);
+        PageRequest pageRequest = createPageRequest(page, size, Sort.by(Sort.Direction.DESC, "fecha")
+                .and(Sort.by(Sort.Direction.DESC, "horallamada")));
+
         return incidenteRepository.findByFilters(fecha, zona, sector, tipoIncidente, pageRequest)
                 .map(IncidentePreviewMapper::toIncidenteDTOPreview);
     }
