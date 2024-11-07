@@ -36,22 +36,22 @@ public class SolicitudController {
      * Endpoint para atender una solicitud especificada por su ID.
      * La solicitud puede aprobarse o rechazarse en función del parámetro "accion".
      *
-     * @param id el ID de la solicitud a atender
+     * @param nroSolicitud el nroSolicitud de la solicitud a atender
      * @param accion la acción a realizar, "approve" o "reject"
      * @return una respuesta con el estado actualizado de la solicitud
      * @throws MessagingException si ocurre un error en el envío de correo electrónico
      * @throws IOException si ocurre un error en la generación del documento PDF
      */
-    @PatchMapping("/{id}/atender")
-    public ResponseEntity<SolicitudResponse> atenderSolicitud(@PathVariable Long id,
+    @PatchMapping("/{nroSolicitud}/atender")
+    public ResponseEntity<SolicitudResponse> atenderSolicitud(@PathVariable String nroSolicitud,
                                                               @RequestParam String accion) throws MessagingException, IOException {
         return switch (accion.toLowerCase()) {
             case "approve" -> {
-                SolicitudResponse approvalResponse = solicitudService.aprobarSolicitud(id);
+                SolicitudResponse approvalResponse = solicitudService.aprobarSolicitud(nroSolicitud);
                 yield ResponseEntity.ok(approvalResponse);
             }
             case "reject" -> {
-                SolicitudResponse rejectionResponse = solicitudService.rechazarSolicitud(id);
+                SolicitudResponse rejectionResponse = solicitudService.rechazarSolicitud(nroSolicitud);
                 yield ResponseEntity.ok(rejectionResponse);
             }
             default -> ResponseEntity.badRequest().body(new SolicitudResponse("Acción no válida."));

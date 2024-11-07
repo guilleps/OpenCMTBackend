@@ -32,6 +32,11 @@ public class IncidenteService {
         PageRequest pageRequest = createPageRequest(page, size, Sort.by(Sort.Direction.DESC, "fecha")
                 .and(Sort.by(Sort.Direction.DESC, "horallamada")));
 
+        if (fecha == null && zona == null && sector == null && tipoIncidente == null) {
+            return incidenteRepository.findAll(pageRequest)
+                    .map(IncidentePreviewMapper::toIncidenteDTOPreview);
+        }
+
         return incidenteRepository.findByFilters(fecha, zona, sector, tipoIncidente, pageRequest)
                 .map(IncidentePreviewMapper::toIncidenteDTOPreview);
     }

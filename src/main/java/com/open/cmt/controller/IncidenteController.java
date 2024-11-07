@@ -45,22 +45,12 @@ public class IncidenteController {
         return ResponseEntity.ok(assembler.toModel(incidentes));
     }
 
-    @GetMapping("/todos")
-    public ResponseEntity<PagedModel<EntityModel<IncidenteDTOPreview>>> obtenerTodosLosIncidentes(
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Max(100) int size,
-            PagedResourcesAssembler<IncidenteDTOPreview> assembler) {
-
-        Page<IncidenteDTOPreview> incidentes = incidenteService.obtenerTodosLosIncidentesPrevio(page, size);
-        return ResponseEntity.ok(assembler.toModel(incidentes));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<IncidentDTO>> obtenerIncidentePorId(@PathVariable Long id) {
         IncidentDTO incidenteDTO = incidenteService.obtenerDetalleDeIncidente(id);
         return ResponseEntity.ok(EntityModel.of(incidenteDTO,
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(IncidenteController.class).obtenerIncidentePorId(id)).withSelfRel(),
-                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(IncidenteController.class).obtenerTodosLosIncidentes(0, 30, null)).withRel("todos")));
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(IncidenteController.class).obtenerIncidentesConFiltros(null, null, null, null, 0, 10, null)).withRel("todos")));
     }
 
     @PostMapping("/{id}/solicitar")

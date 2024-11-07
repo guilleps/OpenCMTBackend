@@ -144,8 +144,9 @@ public class SolicitudService {
     }
 
     @Transactional
-    public SolicitudResponse aprobarSolicitud(Long id) throws MessagingException, IOException {
-        Solicitud solicitud = buscarSoliciturPorId(id);
+    public SolicitudResponse aprobarSolicitud(String nroSolicitud) throws MessagingException, IOException {
+        Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
 
         solicitud.setEstado(EstadoEnum.ACEPTADO);
         solicitudRepository.save(solicitud);
@@ -171,8 +172,9 @@ public class SolicitudService {
         emailService.sendEmailWithAttachment(correoElectronico, subject, body, pdfBytes, "Solicitud_" + nroSolicitud + ".pdf");
     }
 
-    public SolicitudResponse rechazarSolicitud(Long id) {
-        Solicitud solicitud = buscarSoliciturPorId(id);
+    public SolicitudResponse rechazarSolicitud(String nroSolicitud) {
+        Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
 
         solicitud.setEstado(EstadoEnum.RECHAZADO);
         solicitudRepository.save(solicitud);
