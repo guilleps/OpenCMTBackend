@@ -114,7 +114,7 @@ public class GeneratedPDFService {
                 contentStream.beginText();
                 contentStream.newLineAtOffset(marginLeft, yPosition);
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
-                contentStream.showText(incidente.getTipoIntervencion());
+                contentStream.showText(incidente.getResultado());
                 contentStream.endText();
 
                 yPosition -= 2 * lineHeight;
