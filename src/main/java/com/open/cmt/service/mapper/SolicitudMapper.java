@@ -1,8 +1,6 @@
 package com.open.cmt.service.mapper;
 
-import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.SolicitudDTO;
-import com.open.cmt.entity.Incidente;
 import com.open.cmt.entity.Solicitante;
 import com.open.cmt.entity.Solicitud;
 
