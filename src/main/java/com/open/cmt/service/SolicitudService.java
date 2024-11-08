@@ -10,6 +10,7 @@ import com.open.cmt.entity.Solicitud;
 import com.open.cmt.enumeration.EstadoEnum;
 import com.open.cmt.enumeration.TimePeriod;
 import com.open.cmt.repository.SolicitudRepository;
+import com.open.cmt.service.mapper.SolicitudMapper;
 import com.open.cmt.service.mapper.SolicitudPreviewMapper;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
@@ -75,20 +76,9 @@ public class SolicitudService {
     }
 
     public SolicitudDTO obtenerSolicitud(String nroSolicitud) {
-        Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
+        return solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
+                .map(SolicitudMapper::toSolicitudDTO)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
-
-        return SolicitudDTO.builder()
-                .nroSolicitud(solicitud.getNroSolicitud())
-                .fechaSolicitud(solicitud.getFechaHora().toString())
-                .solicitante(solicitud.getSolicitante().getNombreCompleto())
-                .identificacion(solicitud.getSolicitante().getIdentificador())
-                .domicilio(solicitud.getSolicitante().getDomicilio())
-                .correoElectronico(solicitud.getSolicitante().getCorreoElectronico())
-                .telefono(solicitud.getSolicitante().getTelefono())
-                .motivo(solicitud.getMotivo())
-                .nroIncidente(solicitud.getIncidente().getId().toString())
-                .build();
     }
 
     @Transactional(readOnly = true)

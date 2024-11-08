@@ -10,6 +10,7 @@ import lombok.*;
 public class SolicitudDTO {
     private String nroSolicitud;
     private String fechaSolicitud;
+    private String horaSolicitud;
     private String solicitante;
     private String identificacion;
     private String domicilio;

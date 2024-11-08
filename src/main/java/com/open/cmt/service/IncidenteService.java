@@ -2,6 +2,8 @@ package com.open.cmt.service;
 
 import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.IncidenteDTOPreview;
+import com.open.cmt.controller.dto.SectorDTO;
+import com.open.cmt.controller.dto.ZonaDTO;
 import com.open.cmt.entity.Incidente;
 import com.open.cmt.exception.ResourceNotFoundException;
 import com.open.cmt.repository.IncidenteRepository;
@@ -16,11 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class IncidenteService {
     private final IncidenteRepository incidenteRepository;
+    private final ZonaService zonaService;
+    private final SectorService sectorService;
 
     private PageRequest createPageRequest(int page, int size, Sort and) {
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "fecha")
@@ -60,5 +65,13 @@ public class IncidenteService {
     public Incidente buscarIncidentePorId(Long id) {
         return incidenteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Incidente no encontrado con ID: " + id));
+    }
+
+    public List<ZonaDTO> obtenerZonas() {
+        return zonaService.getAllZonas();
+    }
+
+    public List<SectorDTO> obtenerSectoresDeZona(String zona) {
+        return sectorService.getAllSectorsByZone(zona);
     }
 }

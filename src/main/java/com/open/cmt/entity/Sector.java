@@ -18,6 +18,8 @@ public class Sector {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private Integer idzona;
+    @ManyToOne
+    @JoinColumn(name = "idzona", referencedColumnName = "id", nullable = false)
+    private Zona zona;
     private String titulo;
 }

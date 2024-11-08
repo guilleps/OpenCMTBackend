@@ -2,6 +2,8 @@ package com.open.cmt.controller;
 
 import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.IncidenteDTOPreview;
+import com.open.cmt.controller.dto.SectorDTO;
+import com.open.cmt.controller.dto.ZonaDTO;
 import com.open.cmt.controller.request.SolicitudRequest;
 import com.open.cmt.controller.response.SolicitudResponse;
 import com.open.cmt.service.IncidenteService;
@@ -9,6 +11,7 @@ import com.open.cmt.service.SolicitudService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -19,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/incidente")
@@ -57,5 +61,17 @@ public class IncidenteController {
     public ResponseEntity<SolicitudResponse> solicitarAccesoIncidente(@PathVariable Long id, @RequestBody SolicitudRequest solicitudRequest) {
         SolicitudResponse solicitudResponse = solicitudService.crearSolicitud(solicitudRequest, id);
         return ResponseEntity.status(HttpStatus.CREATED).body(solicitudResponse);
+    }
+
+    @GetMapping("/zonas")
+    public ResponseEntity<List<ZonaDTO>> obtenerZonas() {
+        List<ZonaDTO> zonas = incidenteService.obtenerZonas();
+        return ResponseEntity.ok(zonas);
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<SectorDTO>> obtenerZonas(@RequestParam("zona") String zona) {
+        List<SectorDTO> sectores = incidenteService.obtenerSectoresDeZona(zona);
+        return ResponseEntity.ok(sectores);
     }
 }
