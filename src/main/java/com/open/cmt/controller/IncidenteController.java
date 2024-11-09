@@ -3,7 +3,6 @@ package com.open.cmt.controller;
 import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.IncidenteDTOPreview;
 import com.open.cmt.controller.dto.SectorDTO;
-import com.open.cmt.controller.dto.ZonaDTO;
 import com.open.cmt.controller.request.SolicitudRequest;
 import com.open.cmt.controller.response.SolicitudResponse;
 import com.open.cmt.service.IncidenteService;
@@ -62,14 +61,8 @@ public class IncidenteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(solicitudResponse);
     }
 
-    @GetMapping("/zonas")
-    public ResponseEntity<List<ZonaDTO>> obtenerZonas() {
-        List<ZonaDTO> zonas = incidenteService.obtenerZonas();
-        return ResponseEntity.ok(zonas);
-    }
-
     @GetMapping()
-    public ResponseEntity<List<SectorDTO>> obtenerZonas(@RequestParam("zona") String zona) {
+    public ResponseEntity<List<SectorDTO>> obtenerSectorPorZona(@RequestParam("zona") String zona) {
         List<SectorDTO> sectores = incidenteService.obtenerSectoresDeZona(zona);
         return ResponseEntity.ok(sectores);
     }

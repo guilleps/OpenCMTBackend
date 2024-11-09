@@ -138,6 +138,10 @@ public class SolicitudService {
         Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
 
+        if (solicitud.getEstado() != EstadoEnum.PENDIENTE) {
+            throw new IllegalStateException("La solicitud ya ha sido procesada y no puede ser modificada.");
+        }
+
         solicitud.setEstado(EstadoEnum.ACEPTADO);
         solicitudRepository.save(solicitud);
 
@@ -165,6 +169,10 @@ public class SolicitudService {
     public SolicitudResponse rechazarSolicitud(String nroSolicitud) {
         Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
+
+        if (solicitud.getEstado() != EstadoEnum.PENDIENTE) {
+            throw new IllegalStateException("La solicitud ya ha sido procesada y no puede ser modificada.");
+        }
 
         solicitud.setEstado(EstadoEnum.RECHAZADO);
         solicitudRepository.save(solicitud);

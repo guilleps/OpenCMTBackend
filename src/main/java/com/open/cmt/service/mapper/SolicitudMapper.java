@@ -27,7 +27,8 @@ public class SolicitudMapper {
                 Optional.ofNullable(solicitud.getSolicitante()).map(Solicitante::getCorreoElectronico).orElse(null),
                 Optional.ofNullable(solicitud.getSolicitante()).map(Solicitante::getTelefono).orElse(null),
                 solicitud.getMotivo(),
-                Optional.ofNullable(solicitud.getIncidente()).map(i -> i.getId().toString()).orElse(null)
+                Optional.ofNullable(solicitud.getIncidente()).map(i -> i.getId().toString()).orElse(null),
+                solicitud.getEstado().toString()
         );
     }
 

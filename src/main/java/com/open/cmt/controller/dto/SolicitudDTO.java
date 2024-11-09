@@ -18,4 +18,5 @@ public class SolicitudDTO {
     private String telefono;
     private String motivo;
     private String nroIncidente;
+    private String estado;
 }

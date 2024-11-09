@@ -15,11 +15,15 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class GeneratedPDFService {
+
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     public byte[] generarPDFSolicitud(Solicitud solicitud, Incidente incidente) throws IOException {
         try (PDDocument document = new PDDocument()) {
@@ -32,6 +36,9 @@ public class GeneratedPDFService {
             float marginBottom = 60;
             float lineHeight = 15;
 
+            String formattedDate = solicitud.getFechaHora() != null ? solicitud.getFechaHora().format(dateFormatter) : null;
+            String formattedTime = solicitud.getFechaHora() != null ? solicitud.getFechaHora().format(timeFormatter) : null;
+
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
 
                 contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
@@ -43,7 +50,7 @@ public class GeneratedPDFService {
                 contentStream.newLineAtOffset(marginLeft, marginTop - lineHeight);
                 contentStream.showText("Solicitud N°: " + solicitud.getNroSolicitud());
                 contentStream.newLineAtOffset(marginRight - 170, 0);
-                contentStream.showText(solicitud.getFechaHora().toString());
+                contentStream.showText(formattedDate + " " + formattedTime);
                 contentStream.endText();
 
                 yPosition -= 2 * lineHeight;
@@ -152,15 +159,26 @@ public class GeneratedPDFService {
                 contentStream.endText();
 
                 yPosition -= lineHeight;
-                for (Personal personal : incidente.getPersonalList()) {
+                if (incidente.getPersonalList().isEmpty()) {
                     contentStream.beginText();
                     contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
                     contentStream.newLineAtOffset(marginLeft, yPosition);
-                    contentStream.showText(personal.getNombre());
+                    contentStream.showText("-");
                     contentStream.newLineAtOffset(marginRight - 150, 0);
-                    contentStream.showText(personal.getCargo().getNombre());
+                    contentStream.showText("-");
                     contentStream.endText();
                     yPosition -= lineHeight;
+                } else {
+                    for (Personal personal : incidente.getPersonalList()) {
+                        contentStream.beginText();
+                        contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                        contentStream.newLineAtOffset(marginLeft, yPosition);
+                        contentStream.showText(personal.getNombre());
+                        contentStream.newLineAtOffset(marginRight - 150, 0);
+                        contentStream.showText(personal.getCargo().getNombre());
+                        contentStream.endText();
+                        yPosition -= lineHeight;
+                    }
                 }
 
                 // Listado de Vehículos y Placas
@@ -174,15 +192,26 @@ public class GeneratedPDFService {
                 contentStream.endText();
 
                 yPosition -= lineHeight;
-                for (Vehiculo vehiculo : incidente.getVehiculos()) {
+                if (incidente.getVehiculos().isEmpty()) {
                     contentStream.beginText();
                     contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
                     contentStream.newLineAtOffset(marginLeft, yPosition);
-                    contentStream.showText("Movil " + vehiculo.getNumero());
+                    contentStream.showText("-");
                     contentStream.newLineAtOffset(marginRight - 150, 0);
-                    contentStream.showText(vehiculo.getPlaca());
+                    contentStream.showText("-");
                     contentStream.endText();
                     yPosition -= lineHeight;
+                } else {
+                    for (Vehiculo vehiculo : incidente.getVehiculos()) {
+                        contentStream.beginText();
+                        contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                        contentStream.newLineAtOffset(marginLeft, yPosition);
+                        contentStream.showText("Movil " + vehiculo.getNumero());
+                        contentStream.newLineAtOffset(marginRight - 150, 0);
+                        contentStream.showText(vehiculo.getPlaca());
+                        contentStream.endText();
+                        yPosition -= lineHeight;
+                    }
                 }
             }
 
