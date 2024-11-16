@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public class SolicitudMapper {
 
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     public static SolicitudDTO toSolicitudDTO(Solicitud solicitud) {

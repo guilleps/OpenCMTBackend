@@ -6,7 +6,7 @@ import com.open.cmt.entity.Solicitud;
 import java.time.format.DateTimeFormatter;
 
 public class SolicitudPreviewMapper {
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     public static SolicitudDTOPreview toSolicitudDTOPreview(Solicitud solicitud) {

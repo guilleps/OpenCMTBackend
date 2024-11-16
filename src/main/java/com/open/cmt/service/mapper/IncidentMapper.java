@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 public class IncidentMapper {
 
-    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
     public static IncidentDTO toIncidenteDTO(Incidente incidente) {
