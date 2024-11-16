@@ -3,6 +3,7 @@ package com.open.cmt.service;
 import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.IncidenteDTOPreview;
 import com.open.cmt.controller.dto.SectorDTO;
+import com.open.cmt.controller.dto.TipoIncidenteDTO;
 import com.open.cmt.entity.Incidente;
 import com.open.cmt.exception.ResourceNotFoundException;
 import com.open.cmt.repository.IncidenteRepository;
@@ -24,6 +25,7 @@ import java.util.List;
 public class IncidenteService {
     private final IncidenteRepository incidenteRepository;
     private final SectorService sectorService;
+    private final TipoIncidenteService tipoIncidenteService;
 
     private PageRequest createPageRequest(int page, int size, Sort and) {
         return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "fecha")
@@ -67,5 +69,9 @@ public class IncidenteService {
 
     public List<SectorDTO> obtenerSectoresDeZona(String zona) {
         return sectorService.getAllSectorsByZone(zona);
+    }
+
+    public List<TipoIncidenteDTO> obtenerTiposDeIncidente() {
+        return tipoIncidenteService.getAllIncidentType();
     }
 }

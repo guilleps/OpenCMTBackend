@@ -3,8 +3,10 @@ package com.open.cmt.controller;
 import com.open.cmt.controller.dto.IncidentDTO;
 import com.open.cmt.controller.dto.IncidenteDTOPreview;
 import com.open.cmt.controller.dto.SectorDTO;
+import com.open.cmt.controller.dto.TipoIncidenteDTO;
 import com.open.cmt.controller.request.SolicitudRequest;
 import com.open.cmt.controller.response.SolicitudResponse;
+import com.open.cmt.entity.TipoIncidente;
 import com.open.cmt.service.IncidenteService;
 import com.open.cmt.service.SolicitudService;
 import jakarta.validation.constraints.Max;
@@ -61,9 +63,15 @@ public class IncidenteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(solicitudResponse);
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<List<SectorDTO>> obtenerSectorPorZona(@RequestParam("zona") String zona) {
         List<SectorDTO> sectores = incidenteService.obtenerSectoresDeZona(zona);
         return ResponseEntity.ok(sectores);
+    }
+
+    @GetMapping("/tipo-incidente")
+    public ResponseEntity<List<TipoIncidenteDTO>> obtenerIncidentes() {
+        List<TipoIncidenteDTO> tipoIncidentes = incidenteService.obtenerTiposDeIncidente();
+        return ResponseEntity.ok(tipoIncidentes);
     }
 }
