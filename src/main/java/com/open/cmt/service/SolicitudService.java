@@ -9,11 +9,12 @@ import com.open.cmt.entity.Solicitante;
 import com.open.cmt.entity.Solicitud;
 import com.open.cmt.enumeration.EstadoEnum;
 import com.open.cmt.enumeration.TimePeriod;
+import com.open.cmt.exception.SolicitudAlreadyProcessedException;
+import com.open.cmt.exception.SolicitudNotFoundException;
 import com.open.cmt.repository.SolicitudRepository;
 import com.open.cmt.service.mapper.SolicitudMapper;
 import com.open.cmt.service.mapper.SolicitudPreviewMapper;
 import jakarta.mail.MessagingException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,7 +36,7 @@ public class SolicitudService {
     private final EmailService emailService;
     private final GeneratedPDFService pdfService;
 
-    public SolicitudResponse crearSolicitud(SolicitudRequest solicitudRequest, Long id) {
+    public SolicitudResponse crearSolicitud(SolicitudRequest solicitudRequest, Integer id) {
 
         Solicitante solicitante = Solicitante.builder()
                 .nombreCompleto(solicitudRequest.getNombreCompleto())
@@ -78,14 +79,15 @@ public class SolicitudService {
     public SolicitudDTO obtenerSolicitud(String nroSolicitud) {
         return solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
                 .map(SolicitudMapper::toSolicitudDTO)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
+                .orElseThrow(() -> new SolicitudNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
     }
 
     @Transactional(readOnly = true)
     public IncidenteDetalleDTO obtenerIncidenteDetalle(String nroSolicitud) {
         Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
-        Long idIncidente = solicitud.getIncidente().getId().longValue();
+                .orElseThrow(() -> new SolicitudNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
+
+        Integer idIncidente = solicitud.getIncidente().getId();
 
         Incidente incidente = incidenteService.buscarIncidentePorId(idIncidente);
 
@@ -128,18 +130,13 @@ public class SolicitudService {
                 .map(SolicitudPreviewMapper::toSolicitudDTOPreview);
     }
 
-    public Solicitud buscarSoliciturPorId(Long id) {
-        return solicitudRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con ID: " + id));
-    }
-
     @Transactional
     public SolicitudResponse aprobarSolicitud(String nroSolicitud) throws MessagingException, IOException {
         Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
+                .orElseThrow(() -> new SolicitudNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
 
         if (solicitud.getEstado() != EstadoEnum.PENDIENTE) {
-            throw new IllegalStateException("La solicitud ya ha sido procesada y no puede ser modificada.");
+            throw new SolicitudAlreadyProcessedException("La solicitud ya ha sido procesada y no puede ser modificada.");
         }
 
         solicitud.setEstado(EstadoEnum.ACEPTADO);
@@ -168,10 +165,10 @@ public class SolicitudService {
 
     public SolicitudResponse rechazarSolicitud(String nroSolicitud) {
         Solicitud solicitud = solicitudRepository.findSolicitudByNroSolicitud(nroSolicitud)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
+                .orElseThrow(() -> new SolicitudNotFoundException("Solicitud no encontrado con N°" + nroSolicitud));
 
         if (solicitud.getEstado() != EstadoEnum.PENDIENTE) {
-            throw new IllegalStateException("La solicitud ya ha sido procesada y no puede ser modificada.");
+            throw new SolicitudAlreadyProcessedException("La solicitud ya ha sido procesada y no puede ser modificada.");
         }
 
         solicitud.setEstado(EstadoEnum.RECHAZADO);

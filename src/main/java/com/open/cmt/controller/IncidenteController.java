@@ -6,7 +6,6 @@ import com.open.cmt.controller.dto.SectorDTO;
 import com.open.cmt.controller.dto.TipoIncidenteDTO;
 import com.open.cmt.controller.request.SolicitudRequest;
 import com.open.cmt.controller.response.SolicitudResponse;
-import com.open.cmt.entity.TipoIncidente;
 import com.open.cmt.service.IncidenteService;
 import com.open.cmt.service.SolicitudService;
 import jakarta.validation.constraints.Max;
@@ -15,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +30,7 @@ public class IncidenteController {
     private final SolicitudService solicitudService;
 
     @GetMapping("/buscar")
-    public ResponseEntity<PagedModel<EntityModel<IncidenteDTOPreview>>> obtenerIncidentesConFiltros(
+    public ResponseEntity<?> obtenerIncidentesConFiltros(
             @RequestParam(required = false) String fecha,
             @RequestParam(required = false) String zona,
             @RequestParam(required = false) String sector,
@@ -42,15 +40,12 @@ public class IncidenteController {
             PagedResourcesAssembler<IncidenteDTOPreview> assembler) {
 
         LocalDate fechaParsed = (fecha != null && !fecha.isEmpty()) ? LocalDate.parse(fecha) : null;
-
-        Page<IncidenteDTOPreview> incidentes = incidenteService.obtenerIncidentesPorFiltros(
-                fechaParsed, zona, sector, tipoIncidente, page, size);
-
+        Page<IncidenteDTOPreview> incidentes = incidenteService.obtenerIncidentesPorFiltros(fechaParsed, zona, sector, tipoIncidente, page, size);
         return ResponseEntity.ok(assembler.toModel(incidentes));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EntityModel<IncidentDTO>> obtenerIncidentePorId(@PathVariable Long id) {
+    public ResponseEntity<?> obtenerIncidentePorId(@PathVariable Integer id) {
         IncidentDTO incidenteDTO = incidenteService.obtenerDetalleDeIncidente(id);
         return ResponseEntity.ok(EntityModel.of(incidenteDTO,
                 WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(IncidenteController.class).obtenerIncidentePorId(id)).withSelfRel(),
@@ -58,7 +53,7 @@ public class IncidenteController {
     }
 
     @PostMapping("/{id}/solicitar")
-    public ResponseEntity<SolicitudResponse> solicitarAccesoIncidente(@PathVariable Long id, @RequestBody SolicitudRequest solicitudRequest) {
+    public ResponseEntity<SolicitudResponse> solicitarAccesoIncidente(@PathVariable Integer id, @RequestBody SolicitudRequest solicitudRequest) {
         SolicitudResponse solicitudResponse = solicitudService.crearSolicitud(solicitudRequest, id);
         return ResponseEntity.status(HttpStatus.CREATED).body(solicitudResponse);
     }

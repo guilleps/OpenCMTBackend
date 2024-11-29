@@ -56,13 +56,13 @@ public class IncidenteService {
     }
 
     @Transactional(readOnly = true)
-    public IncidentDTO obtenerDetalleDeIncidente(Long id) {
+    public IncidentDTO obtenerDetalleDeIncidente(Integer id) {
         return incidenteRepository.findById(id)
                 .map(IncidentMapper::toIncidenteDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Incidente con id: " + id + " no encontrado"));
     }
 
-    public Incidente buscarIncidentePorId(Long id) {
+    public Incidente buscarIncidentePorId(Integer id) {
         return incidenteRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Incidente no encontrado con ID: " + id));
     }

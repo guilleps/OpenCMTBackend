@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 
 @Repository
-public interface IncidenteRepository extends JpaRepository<Incidente, Long> {
+public interface IncidenteRepository extends JpaRepository<Incidente, Integer> {
     Page<Incidente> findAll(Pageable pageable);
 
     @Query("SELECT i FROM Incidente i " +

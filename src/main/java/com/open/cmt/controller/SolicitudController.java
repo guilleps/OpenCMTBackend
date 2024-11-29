@@ -6,6 +6,7 @@ import com.open.cmt.controller.dto.SolicitudDTOPreview;
 import com.open.cmt.controller.response.SolicitudResponse;
 import com.open.cmt.enumeration.EstadoEnum;
 import com.open.cmt.enumeration.TimePeriod;
+import com.open.cmt.exception.InvalidActionException;
 import com.open.cmt.service.SolicitudService;
 import jakarta.mail.MessagingException;
 import jakarta.validation.constraints.Max;
@@ -28,34 +29,31 @@ public class SolicitudController {
     private final SolicitudService solicitudService;
 
     @GetMapping("/{nroSolicitud}")
-    public ResponseEntity<SolicitudDTO> obtenerSolicitud(@PathVariable String nroSolicitud) {
+    public ResponseEntity<?> obtenerSolicitud(@PathVariable String nroSolicitud) {
         SolicitudDTO solicitudDTO = solicitudService.obtenerSolicitud(nroSolicitud);
         return ResponseEntity.ok(solicitudDTO);
     }
+
     /**
      * Endpoint para atender una solicitud especificada por su ID.
      * La solicitud puede aprobarse o rechazarse en función del parámetro "accion".
      *
      * @param nroSolicitud el nroSolicitud de la solicitud a atender
-     * @param accion la acción a realizar, "approve" o "reject"
+     * @param accion       la acción a realizar, "approve" o "reject"
      * @return una respuesta con el estado actualizado de la solicitud
-     * @throws MessagingException si ocurre un error en el envío de correo electrónico
-     * @throws IOException si ocurre un error en la generación del documento PDF
      */
     @PatchMapping("/{nroSolicitud}/atender")
     public ResponseEntity<SolicitudResponse> atenderSolicitud(@PathVariable String nroSolicitud,
-                                                              @RequestParam String accion) throws MessagingException, IOException {
-        return switch (accion.toLowerCase()) {
-            case "approve" -> {
-                SolicitudResponse approvalResponse = solicitudService.aprobarSolicitud(nroSolicitud);
-                yield ResponseEntity.ok(approvalResponse);
-            }
-            case "reject" -> {
-                SolicitudResponse rejectionResponse = solicitudService.rechazarSolicitud(nroSolicitud);
-                yield ResponseEntity.ok(rejectionResponse);
-            }
-            default -> ResponseEntity.badRequest().body(new SolicitudResponse("Acción no válida."));
-        };
+                                              @RequestParam String accion) throws MessagingException, IOException {
+        if (!accion.equalsIgnoreCase("approve") && !accion.equalsIgnoreCase("reject")) {
+            throw new InvalidActionException("Accion incorrecta");
+        }
+
+        SolicitudResponse response = "approve".equalsIgnoreCase(accion)
+                ? solicitudService.aprobarSolicitud(nroSolicitud)
+                : solicitudService.rechazarSolicitud(nroSolicitud);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{nroSolicitud}/incidente")
@@ -65,7 +63,7 @@ public class SolicitudController {
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<PagedModel<EntityModel<SolicitudDTOPreview>>> obtenerSolicitudesPorFiltros (
+    public ResponseEntity<PagedModel<EntityModel<SolicitudDTOPreview>>> obtenerSolicitudesPorFiltros(
             @RequestParam(required = false) String estadoStr,
             @RequestParam(required = false) String periodoStr,
             @RequestParam(defaultValue = "0") @Min(0) int page,

@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,22 +25,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsuario(), request.getContrasenia())
-            );
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsuario(), request.getContrasenia())
+        );
 
-            String token = jwtUtils.createToken(authentication);
-            return ResponseEntity.ok(new AuthResponse(token));
-        } catch (AuthenticationException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Credenciales incorrectas"));
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponse("Error en el servidor"));
-        }
+        String token = jwtUtils.createToken(authentication);
+        return ResponseEntity.ok(new AuthResponse(token));
     }
 
     @PostMapping("/create-user")
-    public void createUser(@RequestBody AuthRequest request) {
+    public ResponseEntity<String> createUser(@RequestBody AuthRequest request) {
         usuarioService.crearUsuario(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado con éxito");
     }
 }
