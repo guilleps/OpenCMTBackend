@@ -17,7 +17,7 @@ public class SectorService {
     private final SectorRepository sectorRepository;
 
     public List<SectorDTO> getAllSectorsByZone(String zona) {
-        List<Sector> sectores = sectorRepository.findAllByZonaNombre(zona);
+        List<Sector> sectores = sectorRepository.findAllByZonaNombreOrderByTituloAsc(zona);
         return sectores.stream()
                 .map(SectorDTO::fromEntity)
                 .collect(Collectors.toList());

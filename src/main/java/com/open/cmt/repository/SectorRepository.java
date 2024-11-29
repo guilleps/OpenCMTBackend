@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface SectorRepository extends JpaRepository<Sector, Integer> {
-    List<Sector> findAllByZonaNombre(String zonaNombre);
+    List<Sector> findAllByZonaNombreOrderByTituloAsc(String zonaNombre);
 }

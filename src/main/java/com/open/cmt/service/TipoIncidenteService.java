@@ -18,7 +18,7 @@ public class TipoIncidenteService {
 
 
     public List<TipoIncidenteDTO> getAllIncidentType() {
-        List<TipoIncidente> tipoIncidentes = tipoIncidenteRepository.findAll();
+        List<TipoIncidente> tipoIncidentes = tipoIncidenteRepository.findAllByOrderByNombreAsc();
         return tipoIncidentes.stream()
                 .map(TipoIncidenteDTO::fromEntity)
                 .collect(Collectors.toList());
